@@ -86,26 +86,31 @@ if page == "Vessel Profile":
 if page == "LNG Market":
     st.title("📈 LNG Market Trends")
     
-    # Google Sheets URL
-    google_sheets_url = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/export?format=csv"
+    # Google Sheets URLs for different frequency data
+    google_sheets_url_weekly = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet=Weekly"
+    google_sheets_url_monthly = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet=Monthly"
+    google_sheets_url_yearly = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet=Yearly"
     
     # Read data from Google Sheets
-    df_weekly = pd.read_csv(google_sheets_url, parse_dates=["Date"])
-    df_monthly = pd.read_csv(google_sheets_url, parse_dates=["Date"])
-    df_yearly = pd.read_csv(google_sheets_url, parse_dates=["Date"])
+    df_weekly = pd.read_csv(google_sheets_url_weekly, parse_dates=["Date"])
+    df_monthly = pd.read_csv(google_sheets_url_monthly, parse_dates=["Date"])
+    df_yearly = pd.read_csv(google_sheets_url_yearly, parse_dates=["Date"])
     
     # Select frequency
     freq_option = st.radio("Select Data Frequency", ["Weekly", "Monthly", "Yearly"])
     
     if freq_option == "Weekly":
         df_selected = df_weekly
-        column_options = st.multiselect("Select Data Columns", df_weekly.columns.drop("Date"), default=df_weekly.columns[1])
     elif freq_option == "Monthly":
         df_selected = df_monthly
-        column_options = st.multiselect("Select Data Columns", df_monthly.columns.drop("Date"), default=df_monthly.columns[1])
     else:
         df_selected = df_yearly
-        column_options = st.multiselect("Select Data Columns", df_yearly.columns.drop("Date"), default=df_yearly.columns[1])
+    
+    # Ensure date column is properly formatted
+    df_selected = df_selected.sort_values(by="Date")
+    
+    # Select multiple columns
+    column_options = st.multiselect("Select Data Columns", df_selected.columns.drop("Date"), default=df_selected.columns[1])
     
     # Select time range
     start_date = st.date_input("Select Start Date", df_selected["Date"].min())
@@ -113,7 +118,7 @@ if page == "LNG Market":
     df_filtered = df_selected[(df_selected["Date"] >= pd.to_datetime(start_date)) & (df_selected["Date"] <= pd.to_datetime(end_date))]
     
     # Plot time series with date on x-axis and rate on y-axis
-    fig, ax = plt.subplots(figsize=(10, 4))
+    fig, ax = plt.subplots(figsize=(8, 3))
     for column in column_options:
         ax.plot(df_filtered["Date"], df_filtered[column], label=column)
     ax.set_xlabel("Date")
@@ -121,4 +126,6 @@ if page == "LNG Market":
     ax.set_title("LNG Market Rates Over Time")
     ax.legend()
     ax.grid()
+    ax.tick_params(axis='x', rotation=45)  # Reduce x-axis clutter
     st.pyplot(fig)
+
