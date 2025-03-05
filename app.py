@@ -86,20 +86,28 @@ if page == "Vessel Profile":
 if page == "LNG Market":
     st.title("📈 LNG Market Trends")
     
-    # Google Sheets URLs
-    google_sheets_url = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv"
+    # Google Sheets URL
+    google_sheets_url = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/export?format=csv"
     
     # Read data from Google Sheets
-    df_weekly = pd.read_csv(google_sheets_url)
-    df_monthly = pd.read_csv(google_sheets_url)
-    df_yearly = pd.read_csv(google_sheets_url)
+    df_weekly = pd.read_csv(google_sheets_url, parse_dates=["Date"])
+    df_monthly = pd.read_csv(google_sheets_url, parse_dates=["Date"])
+    df_yearly = pd.read_csv(google_sheets_url, parse_dates=["Date"])
     
     # Select frequency
     freq_option = st.radio("Select Data Frequency", ["Weekly", "Monthly", "Yearly"])
     df_selected = df_weekly if freq_option == "Weekly" else df_monthly if freq_option == "Monthly" else df_yearly
     
     # Select multiple columns
-    column_options = st.multiselect("Select Data Columns", df_selected.columns, default=df_selected.columns[:1])
+    column_options = st.multiselect("Select Data Columns", df_selected.columns.drop("Date"), default=df_selected.columns[1])
     
-    # Plot time series with reduced height
-    st.line_chart(df_selected[column_options], height=300)
+    # Plot time series with date on x-axis and rate on y-axis
+    fig, ax = plt.subplots(figsize=(10, 4))
+    for column in column_options:
+        ax.plot(df_selected["Date"], df_selected[column], label=column)
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Rate")
+    ax.set_title("LNG Market Rates Over Time")
+    ax.legend()
+    ax.grid()
+    st.pyplot(fig)
