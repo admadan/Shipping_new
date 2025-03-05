@@ -105,23 +105,24 @@ if page == "LNG Market":
         df_selected = df_monthly
     else:
         df_selected = df_yearly
-
+    
     # Ensure the correct column name for dates
     if "Date" in df_selected.columns:
-        df_selected["Date"] = pd.to_datetime(df_selected["Date"])
-        df_selected = df_selected.sort_values(by="Date")
+        df_selected["Date"] = pd.to_datetime(df_selected["Date"], errors='coerce')
+        df_selected = df_selected.dropna(subset=["Date"]).sort_values(by="Date")
     else:
         st.error("⚠️ 'Date' column not found in the dataset.")
     
     # Select multiple columns dynamically
-    column_options = st.multiselect("Select Data Columns", df_selected.columns.drop("Date", errors="ignore"), default=df_selected.columns[1] if len(df_selected.columns) > 1 else None)
-
+    available_columns = [col for col in df_selected.columns if col != "Date"]
+    column_options = st.multiselect("Select Data Columns", available_columns, default=available_columns[:1] if available_columns else [])
+    
     # Select time range
     if "Date" in df_selected.columns:
         start_date = st.date_input("Select Start Date", df_selected["Date"].min())
         end_date = st.date_input("Select End Date", df_selected["Date"].max())
         df_filtered = df_selected[(df_selected["Date"] >= pd.to_datetime(start_date)) & (df_selected["Date"] <= pd.to_datetime(end_date))]
-
+        
         # Plot time series
         fig, ax = plt.subplots(figsize=(8, 3))
         for column in column_options:
@@ -142,20 +143,21 @@ if page == "Yearly Simulation":
     
     # Read yearly simulation data
     df_yearly_sim = pd.read_csv(google_sheets_url_yearly_sim)
-
+    
     # Check if 'Year' column exists
     possible_year_columns = [col for col in df_yearly_sim.columns if "year" in col.lower()]
     if possible_year_columns:
         year_column = possible_year_columns[0]  # Take the first matching column
         df_yearly_sim[year_column] = pd.to_datetime(df_yearly_sim[year_column], format="%Y", errors="coerce").dt.year
-        df_yearly_sim = df_yearly_sim.sort_values(by=year_column)
+        df_yearly_sim = df_yearly_sim.dropna(subset=[year_column]).sort_values(by=year_column)
     else:
         st.error("⚠️ 'Year' column not found in the dataset.")
     
     # Select variable for Y-axis
-    if possible_year_columns:
-        variable_option = st.selectbox("Select Variable", df_yearly_sim.columns.drop(year_column, errors="ignore"))
-
+    available_variables = [col for col in df_yearly_sim.columns if col != year_column]
+    if available_variables:
+        variable_option = st.selectbox("Select Variable", available_variables)
+        
         # Plot yearly simulation
         fig, ax = plt.subplots(figsize=(8, 3))
         ax.plot(df_yearly_sim[year_column], df_yearly_sim[variable_option], marker='o', linestyle='-')
@@ -164,3 +166,5 @@ if page == "Yearly Simulation":
         ax.set_title(f"Yearly Simulation: {variable_option} Over Time")
         ax.grid()
         st.pyplot(fig)
+    else:
+        st.error("⚠️ No variables available to plot.")
