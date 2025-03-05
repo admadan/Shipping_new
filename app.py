@@ -86,52 +86,20 @@ if page == "Vessel Profile":
 if page == "LNG Market":
     st.title("📈 LNG Market Trends")
     
-    # Google Sheets URL (Ensure it's publicly accessible)
+    # Google Sheets URLs
     google_sheets_url = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv"
-
-    try:
-        # Read data from Google Sheets (without parsing dates first)
-        df_TCvsSpot = pd.read_csv(google_sheets_url)
-
-        # Display available columns for debugging
-        st.write("Available Columns in Data:", df_TCvsSpot.columns.tolist())
-
-        # Auto-detect date column
-        possible_date_columns = [col for col in df_TCvsSpot.columns if "date" in col.lower()]
-        if possible_date_columns:
-            date_column = possible_date_columns[0]  # Take the first matching column
-            df_TCvsSpot[date_column] = pd.to_datetime(df_TCvsSpot[date_column], errors="coerce")
-            df_TCvsSpot.set_index(date_column, inplace=True)
-        else:
-            st.warning("⚠️ No column with 'Date' found. Please check your Google Sheet.")
-
-        # Allow users to select multiple columns for plotting
-        column_options = st.multiselect("Select Data Columns", df_TCvsSpot.columns, default=df_TCvsSpot.columns[:1])
-
-        # Check if Frequency column exists
-        if "Frequency" in df_TCvsSpot.columns:
-            # Select frequency
-            freq_option = st.radio("Select Data Frequency", ["Weekly", "Monthly", "Yearly"])
-
-            if freq_option == "Weekly":
-                df_selected = df_TCvsSpot[df_TCvsSpot["Frequency"] == "Weekly"]
-            elif freq_option == "Monthly":
-                df_selected = df_TCvsSpot[df_TCvsSpot["Frequency"] == "Monthly"]
-            else:
-                df_selected = df_TCvsSpot[df_TCvsSpot["Frequency"] == "Yearly"]
-            
-            # Ensure selected columns exist in the filtered dataframe
-            valid_columns = [col for col in column_options if col in df_selected.columns]
-            
-            if valid_columns:
-                st.line_chart(df_selected[valid_columns])
-            else:
-                st.warning("⚠️ No valid columns selected for plotting. Please check your selection.")
-        else:
-            st.warning("⚠️ 'Frequency' column not found in the dataset. Displaying full dataset.")
-            st.line_chart(df_TCvsSpot[column_options])
-
-    except Exception as e:
-        st.error(f"❌ Error loading data: {e}")
-
-
+    
+    # Read data from Google Sheets
+    df_weekly = pd.read_csv(google_sheets_url)
+    df_monthly = pd.read_csv(google_sheets_url)
+    df_yearly = pd.read_csv(google_sheets_url)
+    
+    # Select frequency
+    freq_option = st.radio("Select Data Frequency", ["Weekly", "Monthly", "Yearly"])
+    df_selected = df_weekly if freq_option == "Weekly" else df_monthly if freq_option == "Monthly" else df_yearly
+    
+    # Select multiple columns
+    column_options = st.multiselect("Select Data Columns", df_selected.columns, default=df_selected.columns[:1])
+    
+    # Plot time series with reduced height
+    st.line_chart(df_selected[column_options], height=300)
