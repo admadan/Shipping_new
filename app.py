@@ -87,65 +87,80 @@ if page == "LNG Market":
     st.title("📈 LNG Market Trends")
     
     # Google Sheets URLs for different frequency data
-    google_sheets_url_weekly = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet=Weekly"
-    google_sheets_url_monthly = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet=Monthly"
-    google_sheets_url_yearly = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet=Yearly"
+    google_sheets_url_weekly = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet=Weekly data_160K CBM"
+    google_sheets_url_monthly = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet=Monthly data_160K CBM"
+    google_sheets_url_yearly = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet=Yearly data_160 CBM"
     
     # Read data from Google Sheets
-    df_weekly = pd.read_csv(google_sheets_url_weekly, parse_dates=["Date"])
-    df_monthly = pd.read_csv(google_sheets_url_monthly, parse_dates=["Date"])
-    df_yearly = pd.read_csv(google_sheets_url_yearly, parse_dates=["Date"])
+    df_weekly = pd.read_csv(google_sheets_url_weekly)
+    df_monthly = pd.read_csv(google_sheets_url_monthly)
+    df_yearly = pd.read_csv(google_sheets_url_yearly)
     
     # Select frequency
     freq_option = st.radio("Select Data Frequency", ["Weekly", "Monthly", "Yearly"])
     
     if freq_option == "Weekly":
         df_selected = df_weekly
-        column_options = st.multiselect("Select Data Columns", df_weekly.columns.drop("Date"), default=df_weekly.columns[1])
     elif freq_option == "Monthly":
         df_selected = df_monthly
-        column_options = st.multiselect("Select Data Columns", df_monthly.columns.drop("Date"), default=df_monthly.columns[1])
     else:
         df_selected = df_yearly
-        column_options = st.multiselect("Select Data Columns", df_yearly.columns.drop("Date"), default=df_yearly.columns[1])
+
+    # Ensure the correct column name for dates
+    if "Date" in df_selected.columns:
+        df_selected["Date"] = pd.to_datetime(df_selected["Date"])
+        df_selected = df_selected.sort_values(by="Date")
+    else:
+        st.error("⚠️ 'Date' column not found in the dataset.")
     
-    # Ensure date column is properly formatted
-    df_selected = df_selected.sort_values(by="Date")
-    
+    # Select multiple columns dynamically
+    column_options = st.multiselect("Select Data Columns", df_selected.columns.drop("Date", errors="ignore"), default=df_selected.columns[1] if len(df_selected.columns) > 1 else None)
+
     # Select time range
-    start_date = st.date_input("Select Start Date", df_selected["Date"].min())
-    end_date = st.date_input("Select End Date", df_selected["Date"].max())
-    df_filtered = df_selected[(df_selected["Date"] >= pd.to_datetime(start_date)) & (df_selected["Date"] <= pd.to_datetime(end_date))]
-    
-    # Plot time series with date on x-axis and rate on y-axis
-    fig, ax = plt.subplots(figsize=(8, 3))
-    for column in column_options:
-        ax.plot(df_filtered["Date"], df_filtered[column], label=column)
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Rate")
-    ax.set_title("LNG Market Rates Over Time")
-    ax.legend()
-    ax.grid()
-    ax.tick_params(axis='x', rotation=45)  # Reduce x-axis clutter
-    st.pyplot(fig)
+    if "Date" in df_selected.columns:
+        start_date = st.date_input("Select Start Date", df_selected["Date"].min())
+        end_date = st.date_input("Select End Date", df_selected["Date"].max())
+        df_filtered = df_selected[(df_selected["Date"] >= pd.to_datetime(start_date)) & (df_selected["Date"] <= pd.to_datetime(end_date))]
+
+        # Plot time series
+        fig, ax = plt.subplots(figsize=(8, 3))
+        for column in column_options:
+            ax.plot(df_filtered["Date"], df_filtered[column], label=column)
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Rate")
+        ax.set_title("LNG Market Rates Over Time")
+        ax.legend()
+        ax.grid()
+        ax.tick_params(axis='x', rotation=45)
+        st.pyplot(fig)
 
 if page == "Yearly Simulation":
     st.title("📊 Yearly Simulation Dashboard")
     
     # Google Sheets URL for yearly simulation data
-    google_sheets_url_yearly_sim = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet=YearlySimulation"
+    google_sheets_url_yearly_sim = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet=Yearly equilibrium"
     
     # Read yearly simulation data
-    df_yearly_sim = pd.read_csv(google_sheets_url_yearly_sim, parse_dates=["Year"])
+    df_yearly_sim = pd.read_csv(google_sheets_url_yearly_sim)
+
+    # Check if 'Year' column exists
+    possible_year_columns = [col for col in df_yearly_sim.columns if "year" in col.lower()]
+    if possible_year_columns:
+        year_column = possible_year_columns[0]  # Take the first matching column
+        df_yearly_sim[year_column] = pd.to_datetime(df_yearly_sim[year_column], format="%Y", errors="coerce").dt.year
+        df_yearly_sim = df_yearly_sim.sort_values(by=year_column)
+    else:
+        st.error("⚠️ 'Year' column not found in the dataset.")
     
     # Select variable for Y-axis
-    variable_option = st.selectbox("Select Variable", df_yearly_sim.columns.drop("Year"))
-    
-    # Plot yearly simulation
-    fig, ax = plt.subplots(figsize=(8, 3))
-    ax.plot(df_yearly_sim["Year"], df_yearly_sim[variable_option], marker='o', linestyle='-')
-    ax.set_xlabel("Year")
-    ax.set_ylabel(variable_option)
-    ax.set_title("Yearly Simulation: {} Over Time".format(variable_option))
-    ax.grid()
-    st.pyplot(fig)
+    if possible_year_columns:
+        variable_option = st.selectbox("Select Variable", df_yearly_sim.columns.drop(year_column, errors="ignore"))
+
+        # Plot yearly simulation
+        fig, ax = plt.subplots(figsize=(8, 3))
+        ax.plot(df_yearly_sim[year_column], df_yearly_sim[variable_option], marker='o', linestyle='-')
+        ax.set_xlabel("Year")
+        ax.set_ylabel(variable_option)
+        ax.set_title(f"Yearly Simulation: {variable_option} Over Time")
+        ax.grid()
+        st.pyplot(fig)
