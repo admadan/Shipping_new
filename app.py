@@ -87,15 +87,23 @@ if page == "LNG Market":
     st.title("📈 LNG Market Trends")
     
     # Google Sheets URL (Ensure it's publicly accessible)
-    google_sheets_url = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/edit?usp=sharing&ouid=117771478264564763817&rtpof=true&sd=true"
+    google_sheets_url = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv"
 
     try:
-        # Read data from Google Sheets
-        df_TCvsSpot = pd.read_csv(google_sheets_url, parse_dates=["Date"])
-        df_TCvsSpot.set_index("Date", inplace=True)
+        # Read data from Google Sheets (without parsing dates first)
+        df_TCvsSpot = pd.read_csv(google_sheets_url)
 
         # Display available columns for debugging
-        st.write("Available Columns:", df_TCvsSpot.columns.tolist())
+        st.write("Available Columns in Data:", df_TCvsSpot.columns.tolist())
+
+        # Auto-detect date column
+        possible_date_columns = [col for col in df_TCvsSpot.columns if "date" in col.lower()]
+        if possible_date_columns:
+            date_column = possible_date_columns[0]  # Take the first matching column
+            df_TCvsSpot[date_column] = pd.to_datetime(df_TCvsSpot[date_column], errors="coerce")
+            df_TCvsSpot.set_index(date_column, inplace=True)
+        else:
+            st.warning("⚠️ No column with 'Date' found. Please check your Google Sheet.")
 
         # Allow users to select multiple columns for plotting
         column_options = st.multiselect("Select Data Columns", df_TCvsSpot.columns, default=df_TCvsSpot.columns[:1])
@@ -125,4 +133,5 @@ if page == "LNG Market":
 
     except Exception as e:
         st.error(f"❌ Error loading data: {e}")
+
 
