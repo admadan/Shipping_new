@@ -90,20 +90,22 @@ if page == "LNG Market":
     google_sheets_url = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/export?format=csv"
     
     # Read data from Google Sheets
-    df_weekly = pd.read_csv(google_sheets_url, sheet_name="Weekly data_160K CBM", parse_dates=["Date"])
-    df_monthly = pd.read_csv(google_sheets_url, sheet_name="Monthly data_160K CBM", parse_dates=["Date"])
-    df_yearly = pd.read_csv(google_sheets_url, sheet_name="Yearly data_160 CBM", parse_dates=["Date"])
-    
-    df_weekly.set_index("Date", inplace=True)
-    df_monthly.set_index("Date", inplace=True)
-    df_yearly.set_index("Date", inplace=True)
+    df_TCvsSpot = pd.read_csv(google_sheets_url, parse_dates=["Date"])
+    df_TCvsSpot.set_index("Date", inplace=True)
     
     # Select frequency
     freq_option = st.radio("Select Data Frequency", ["Weekly", "Monthly", "Yearly"])
-    df_selected = df_weekly if freq_option == "Weekly" else df_monthly if freq_option == "Monthly" else df_yearly
+    
+    # Filter based on frequency
+    if freq_option == "Weekly":
+        df_selected = df_TCvsSpot[df_TCvsSpot["Frequency"] == "Weekly"]
+    elif freq_option == "Monthly":
+        df_selected = df_TCvsSpot[df_TCvsSpot["Frequency"] == "Monthly"]
+    else:
+        df_selected = df_TCvsSpot[df_TCvsSpot["Frequency"] == "Yearly"]
     
     # Select multiple columns
-    column_options = st.multiselect("Select Data Columns", df_selected.columns, default=df_selected.columns[:1])
+    column_options = st.multiselect("Select Data Columns", df_selected.columns.drop("Frequency"), default=df_selected.columns[1])
     
     # Plot time series
     st.line_chart(df_selected[column_options])
