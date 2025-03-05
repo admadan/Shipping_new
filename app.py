@@ -96,15 +96,26 @@ if page == "LNG Market":
     
     # Select frequency
     freq_option = st.radio("Select Data Frequency", ["Weekly", "Monthly", "Yearly"])
-    df_selected = df_weekly if freq_option == "Weekly" else df_monthly if freq_option == "Monthly" else df_yearly
     
-    # Select multiple columns
-    column_options = st.multiselect("Select Data Columns", df_selected.columns.drop("Date"), default=df_selected.columns[1])
+    if freq_option == "Weekly":
+        df_selected = df_weekly
+        column_options = st.multiselect("Select Data Columns", df_weekly.columns.drop("Date"), default=df_weekly.columns[1])
+    elif freq_option == "Monthly":
+        df_selected = df_monthly
+        column_options = st.multiselect("Select Data Columns", df_monthly.columns.drop("Date"), default=df_monthly.columns[1])
+    else:
+        df_selected = df_yearly
+        column_options = st.multiselect("Select Data Columns", df_yearly.columns.drop("Date"), default=df_yearly.columns[1])
+    
+    # Select time range
+    start_date = st.date_input("Select Start Date", df_selected["Date"].min())
+    end_date = st.date_input("Select End Date", df_selected["Date"].max())
+    df_filtered = df_selected[(df_selected["Date"] >= pd.to_datetime(start_date)) & (df_selected["Date"] <= pd.to_datetime(end_date))]
     
     # Plot time series with date on x-axis and rate on y-axis
     fig, ax = plt.subplots(figsize=(10, 4))
     for column in column_options:
-        ax.plot(df_selected["Date"], df_selected[column], label=column)
+        ax.plot(df_filtered["Date"], df_filtered[column], label=column)
     ax.set_xlabel("Date")
     ax.set_ylabel("Rate")
     ax.set_title("LNG Market Rates Over Time")
