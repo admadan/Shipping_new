@@ -131,17 +131,17 @@ if page == "LNG Market":
             end_date = st.date_input("Select End Date", df_selected["Date"].max())
             df_filtered = df_selected[(df_selected["Date"] >= pd.to_datetime(start_date)) & (df_selected["Date"] <= pd.to_datetime(end_date))]
             
-            # Plot time series
+            # Plot time series with dynamic Y-axis adjustment
             fig, ax = plt.subplots(figsize=(6, 2))  # Reduced axis size
             for column in column_options:
                 ax.plot(df_filtered["Date"], df_filtered[column], label=column)
             ax.set_xlabel("Date")
-            ax.set_ylabel("Selected Metric")
+            ax.set_ylabel(column_options[0] if len(column_options) == 1 else "Selected Metrics")  # Dynamic Y-axis title
             ax.set_title("LNG Market Rates Over Time")
             ax.legend()
             ax.grid()
             ax.tick_params(axis='x', rotation=45)
-            ax.set_ylim([df_filtered[column_options].min().min(), df_filtered[column_options].max().max()])  # Adjust Y-axis dynamically
+            ax.set_ylim(df_filtered[column_options].min().min(), df_filtered[column_options].max().max())  # Dynamic Y-axis range
             st.pyplot(fig)
     except Exception as e:
         st.error(f"❌ Error loading data: {e}")
