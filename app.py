@@ -93,7 +93,6 @@ if page == "Vessel Profile":
 if page == "LNG Market":
     st.title("📈 LNG Market Trends")
     
-    # Google Sheets URLs for different frequency data
     base_url = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet="
     sheet_names = {
         "Weekly": "Weekly%20data_160K%20CBM",
@@ -101,54 +100,48 @@ if page == "LNG Market":
         "Yearly": "Yearly%20data_160%20CBM"
     }
     
-    # Select frequency
     freq_option = st.radio("Select Data Frequency", ["Weekly", "Monthly", "Yearly"])
     google_sheets_url = f"{base_url}{sheet_names[freq_option]}"
     
     try:
-        # Read data from Google Sheets
-        df_selected = pd.read_csv(google_sheets_url, dtype=str)  # Ensures all data is initially treated as strings
+        df_selected = pd.read_csv(google_sheets_url, dtype=str)
         
-        # Ensure the correct column name for dates
         if "Date" in df_selected.columns:
             df_selected["Date"] = pd.to_datetime(df_selected["Date"], errors='coerce')
             df_selected = df_selected.dropna(subset=["Date"]).sort_values(by="Date")
         else:
             st.error("⚠️ 'Date' column not found in the dataset.")
         
-        # Convert numeric columns to proper float format
         for col in df_selected.columns:
             if col != "Date":
-                df_selected[col] = pd.to_numeric(df_selected[col], errors='coerce').fillna(0)  # Convert to float, replace NaNs with 0
+                df_selected[col] = pd.to_numeric(df_selected[col], errors='coerce').fillna(0)
 
-        # Select multiple columns dynamically
         available_columns = [col for col in df_selected.columns if col != "Date"]
         column_options = st.multiselect("Select Data Columns", available_columns, default=available_columns[:1] if available_columns else [])
         
-        # Select time range
         if "Date" in df_selected.columns:
             start_date = st.date_input("Select Start Date", df_selected["Date"].min())
             end_date = st.date_input("Select End Date", df_selected["Date"].max())
             df_filtered = df_selected[(df_selected["Date"] >= pd.to_datetime(start_date)) & (df_selected["Date"] <= pd.to_datetime(end_date))]
             
-            # Plot time series with dynamic Y-axis adjustment
-            fig, ax = plt.subplots(figsize=(6, 2))  # Reduced axis size
+            fig, ax = plt.subplots(figsize=(8, 4))
             for column in column_options:
                 ax.plot(df_filtered["Date"], df_filtered[column], label=column)
+            
             ax.set_xlabel("Date")
-            ax.set_ylabel(column_options[0] if len(column_options) == 1 else "Selected Metrics")  # Dynamic Y-axis title
+            ax.set_ylabel("Selected Metrics" if len(column_options) > 1 else column_options[0])
             ax.set_title("LNG Market Rates Over Time")
             ax.legend()
             ax.grid()
             ax.tick_params(axis='x', rotation=45)
-            ax.set_ylim(df_filtered[column_options].min().min(), df_filtered[column_options].max().max())  # Dynamic Y-axis range
+            
+            # Dynamically adjust Y-axis
+            if column_options:
+                ax.set_ylim(df_filtered[column_options].min().min(), df_filtered[column_options].max().max())
+            
             st.pyplot(fig)
     except Exception as e:
         st.error(f"❌ Error loading data: {e}")
-
-
-
-
 
 if page == "Yearly Simulation":
     st.title("📊 Yearly Simulation Dashboard")
@@ -156,45 +149,40 @@ if page == "Yearly Simulation":
     base_url = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet=Yearly%20equilibrium"
     
     try:
-        # Read yearly simulation data
         df_yearly_sim = pd.read_csv(base_url, dtype=str)
         
-        # Ensure the correct column name for years
         if "Year" in df_yearly_sim.columns:
             df_yearly_sim["Year"] = pd.to_datetime(df_yearly_sim["Year"], format="%Y", errors='coerce').dt.year
             df_yearly_sim = df_yearly_sim.dropna(subset=["Year"]).sort_values(by="Year")
         else:
             st.error("⚠️ 'Year' column not found in the dataset.")
         
-        # Convert numeric columns to proper float format
         for col in df_yearly_sim.columns:
             if col != "Year":
                 df_yearly_sim[col] = pd.to_numeric(df_yearly_sim[col], errors='coerce').fillna(0)
 
-        # Select multiple columns dynamically
         available_columns = [col for col in df_yearly_sim.columns if col != "Year"]
         variable_option = st.multiselect("Select Data Columns", available_columns, default=available_columns[:1] if available_columns else [])
         
-        # Select time range
         start_year = st.number_input("Select Start Year", int(df_yearly_sim["Year"].min()), int(df_yearly_sim["Year"].max()), int(df_yearly_sim["Year"].min()))
         end_year = st.number_input("Select End Year", int(df_yearly_sim["Year"].min()), int(df_yearly_sim["Year"].max()), int(df_yearly_sim["Year"].max()))
         df_filtered = df_yearly_sim[(df_yearly_sim["Year"] >= start_year) & (df_yearly_sim["Year"] <= end_year)]
-            
-        # Plot time series with multiple axes
-        fig, ax1 = plt.subplots(figsize=(6, 2))  # Reduced axis size
+        
+        fig, ax1 = plt.subplots(figsize=(8, 4))
         ax1.set_xlabel("Year")
-        ax1.set_ylabel(variable_option[0] if len(variable_option) == 1 else "Selected Metrics")  # Dynamic Y-axis title
-        ax1.set_title("Yearly Simulation Trends", fontsize=10)
-        ax1.tick_params(axis='x', rotation=45, labelsize=8)
-        ax1.tick_params(axis='y', labelsize=8)
+        ax1.set_ylabel("Selected Metrics" if len(variable_option) > 1 else variable_option[0])
+        ax1.set_title("Yearly Simulation Trends")
+        ax1.tick_params(axis='x', rotation=45)
         
         ax2 = ax1.twinx() if len(variable_option) > 1 else None
         
         for i, column in enumerate(variable_option):
             ax = ax1 if i == 0 or ax2 is None else ax2
             ax.plot(df_filtered["Year"], df_filtered[column], label=column)
-            ax.set_ylim(df_filtered[column].min(), df_filtered[column].max())  # Dynamic Y-axis range
             
+            # Dynamically adjust Y-axis
+            ax.set_ylim(df_filtered[column].min(), df_filtered[column].max())
+        
         ax1.legend()
         ax1.grid()
         st.pyplot(fig)
