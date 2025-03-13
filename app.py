@@ -153,8 +153,13 @@ if page == "LNG Market":
 if page == "Yearly Simulation":
     st.title("📊 Yearly Simulation Dashboard")
     
-    # Google Sheets URL for yearly simulation data
-    google_sheets_url_yearly_sim = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet=Yearly equilibrium"
+       base_url = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet="
+    sheet_names = {
+        "Weekly": "Weekly%20data_160K%20CBM",
+        "Monthly": "Monthly%20data_160K%20CBM",
+        "Yearly": "Yearly%20data_160%20CBM",
+        "Yearly Simulation": "Yearly%20equilibrium"
+
     
     # Read yearly simulation data
     df_yearly_sim = pd.read_csv(google_sheets_url_yearly_sim)
