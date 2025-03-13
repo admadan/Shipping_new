@@ -135,9 +135,12 @@ if page == "LNG Market":
                 ax2.set_ylabel(column_options[1])
                 ax1.plot(df_filtered["Date"], df_filtered[column_options[0]], label=column_options[0], color='blue')
                 ax2.plot(df_filtered["Date"], df_filtered[column_options[1]], label=column_options[1], color='orange')
+                ax1.set_ylim(df_filtered[column_options[0]].min(), df_filtered[column_options[0]].max())
+                ax2.set_ylim(df_filtered[column_options[1]].min(), df_filtered[column_options[1]].max())
             else:
                 ax1.set_ylabel(column_options[0])
                 ax1.plot(df_filtered["Date"], df_filtered[column_options[0]], label=column_options[0], color='blue')
+                ax1.set_ylim(df_filtered[column_options[0]].min(), df_filtered[column_options[0]].max())
             
             ax1.legend()
             ax1.grid()
@@ -181,9 +184,12 @@ if page == "Yearly Simulation":
             ax2.set_ylabel(variable_option[1])
             ax1.plot(df_filtered["Year"], df_filtered[variable_option[0]], label=variable_option[0], color='blue')
             ax2.plot(df_filtered["Year"], df_filtered[variable_option[1]], label=variable_option[1], color='orange')
+            ax1.set_ylim(df_filtered[variable_option[0]].min(), df_filtered[variable_option[0]].max())
+            ax2.set_ylim(df_filtered[variable_option[1]].min(), df_filtered[variable_option[1]].max())
         else:
             ax1.set_ylabel(variable_option[0])
             ax1.plot(df_filtered["Year"], df_filtered[variable_option[0]], label=variable_option[0], color='blue')
+            ax1.set_ylim(df_filtered[variable_option[0]].min(), df_filtered[variable_option[0]].max())
         
         ax1.legend()
         ax1.grid()
