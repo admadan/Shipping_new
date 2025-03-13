@@ -85,8 +85,13 @@ if page == "Vessel Profile":
     vessel_data["Total_Freight_Earnings"] = freight_rate_per_day * voyage_days
     vessel_data["Total_Profit"] = vessel_data["Total_Freight_Earnings"] - vessel_data["Total_Voyage_Cost"]
     
-    # Display the table
-    st.dataframe(vessel_data)
+    # Display the table with center-aligned values
+    st.markdown(
+        vessel_data.style.set_properties(**{'text-align': 'center'}).set_table_styles([
+            {'selector': 'th', 'props': [('text-align', 'center')]}
+        ]).to_html(),
+        unsafe_allow_html=True
+    )
     
     # Show a summary of total fleet fuel cost
     total_fuel_cost = vessel_data["Fuel_Cost_per_Day"].sum()
@@ -98,8 +103,7 @@ if page == "Vessel Profile":
     st.metric(label="Total Voyage Cost (USD)", value=f"${total_voyage_cost:,.2f}")
     st.metric(label="Total Freight Earnings (USD)", value=f"${total_freight_earnings:,.2f}")
     st.metric(label="Total Profit (USD)", value=f"${total_profit:,.2f}")
-
-
+    
 
 if page == "LNG Market":
     st.title("📈 LNG Market Trends")
