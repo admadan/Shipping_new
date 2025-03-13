@@ -81,8 +81,8 @@ if page == "Vessel Profile":
     vessel_data["Total_Voyage_Cost"] = (vessel_data["Fuel_Cost_per_Day"] * voyage_days).astype(int)
     
     # Calculate Freight Earnings and Profit
-    vessel_data["Total_Freight_Earnings"] = (freight_rate_per_day * voyage_days).astype(int)
-    vessel_data["Total_Profit"] = (vessel_data["Total_Freight_Earnings"] - vessel_data["Total_Voyage_Cost"]).astype(int)
+    vessel_data["Total_Freight_Earnings"] = freight_rate_per_day * voyage_days
+    vessel_data["Total_Profit"] = vessel_data["Total_Freight_Earnings"] - vessel_data["Total_Voyage_Cost"]
     
     # Ensure all values are numeric and format correctly
     numeric_columns = ["Capacity_CBM", "FuelEU_GHG_Compliance", "Fuel_Consumption_MT_per_day", "Fuel_Cost_per_Day", "Total_Voyage_Cost", "Total_Freight_Earnings", "Total_Profit"]
@@ -101,8 +101,8 @@ if page == "Vessel Profile":
     # Show a summary of total fleet fuel cost
     total_fuel_cost = vessel_data["Fuel_Cost_per_Day"].sum()
     total_voyage_cost = vessel_data["Total_Voyage_Cost"].sum()
-    total_freight_earnings = vessel_data["Total_Freight_Earnings"].sum()
-    total_profit = vessel_data["Total_Profit"].sum()
+    total_freight_earnings = int(freight_rate_per_day * voyage_days)
+    total_profit = total_freight_earnings - total_voyage_cost
     
     st.metric(label="Total Fleet Fuel Cost per Day (USD)", value=f"${total_fuel_cost:,}")
     st.metric(label="Total Voyage Cost (USD)", value=f"${total_voyage_cost:,}")
