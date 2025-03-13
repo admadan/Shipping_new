@@ -78,11 +78,15 @@ if page == "Vessel Profile":
     
     # Calculate Fuel Cost Per Day and Total Cost
     vessel_data["Fuel_Cost_per_Day"] = (vessel_data["Fuel_Consumption_MT_per_day"] * fuel_price).astype(int)
-    vessel_data["Total_Voyage_Cost"] = vessel_data["Fuel_Cost_per_Day"] * voyage_days
+    vessel_data["Total_Voyage_Cost"] = (vessel_data["Fuel_Cost_per_Day"] * voyage_days).astype(int)
     
     # Calculate Freight Earnings and Profit
-    vessel_data["Total_Freight_Earnings"] = int(freight_rate_per_day * voyage_days)
-    vessel_data["Total_Profit"] = vessel_data["Total_Freight_Earnings"] - vessel_data["Total_Voyage_Cost"]
+    vessel_data["Total_Freight_Earnings"] = (freight_rate_per_day * voyage_days).astype(int)
+    vessel_data["Total_Profit"] = (vessel_data["Total_Freight_Earnings"] - vessel_data["Total_Voyage_Cost"]).astype(int)
+    
+    # Ensure all values are numeric and format correctly
+    numeric_columns = ["Capacity_CBM", "FuelEU_GHG_Compliance", "Fuel_Consumption_MT_per_day", "Fuel_Cost_per_Day", "Total_Voyage_Cost", "Total_Freight_Earnings", "Total_Profit"]
+    vessel_data[numeric_columns] = vessel_data[numeric_columns].apply(pd.to_numeric)
     
     # Format table to display values in a single line and center-align
     st.markdown(
@@ -90,7 +94,7 @@ if page == "Vessel Profile":
             **{'text-align': 'center', 'white-space': 'nowrap'}
         ).set_table_styles([
             {'selector': 'th', 'props': [('text-align', 'center')]}
-        ]).format("{:,.0f}").to_html(),
+        ]).format({col: "{:,.0f}" for col in numeric_columns}).to_html(),
         unsafe_allow_html=True
     )
     
@@ -104,7 +108,6 @@ if page == "Vessel Profile":
     st.metric(label="Total Voyage Cost (USD)", value=f"${total_voyage_cost:,}")
     st.metric(label="Total Freight Earnings (USD)", value=f"${total_freight_earnings:,}")
     st.metric(label="Total Profit (USD)", value=f"${total_profit:,}")
-
 
 
 if page == "LNG Market":
