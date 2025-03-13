@@ -90,7 +90,6 @@ if page == "Vessel Profile":
     st.metric(label="Total Voyage Cost (USD)", value=f"${total_voyage_cost:,.2f}")
 
 
-
 if page == "LNG Market":
     st.title("📈 LNG Market Trends")
     
@@ -148,6 +147,10 @@ if page == "LNG Market":
             st.pyplot(fig)
     except Exception as e:
         st.error(f"❌ Error loading data: {e}")
+
+
+
+
 
 if page == "Yearly Simulation":
     st.title("📊 Yearly Simulation Dashboard")
