@@ -158,8 +158,10 @@ if page == "Yearly Simulation":
         "Yearly Simulation": "Yearly%20equilibrium"
     }
 
+    google_sheets_url = f"{base_url}"
+
     # Read yearly simulation data
-    df_yearly_sim = pd.read_csv(google_sheets_url_yearly_sim)
+    df_yearly_sim = pd.read_csv(google_sheets_url, dtype=str)
     
     # Check if 'Year' column exists
     possible_year_columns = [col for col in df_yearly_sim.columns if "year" in col.lower()]
