@@ -132,20 +132,19 @@ if page == "LNG Market":
             df_filtered = df_selected[(df_selected["Date"] >= pd.to_datetime(start_date)) & (df_selected["Date"] <= pd.to_datetime(end_date))]
             
             # Plot time series
-            fig, ax = plt.subplots(figsize=(8, 3))
+            fig, ax = plt.subplots(figsize=(6, 2))  # Reduced axis size
             for column in column_options:
                 ax.plot(df_filtered["Date"], df_filtered[column], label=column)
             ax.set_xlabel("Date")
-            ax.set_ylabel("Rate")
+            ax.set_ylabel("Selected Metric")
             ax.set_title("LNG Market Rates Over Time")
             ax.legend()
             ax.grid()
             ax.tick_params(axis='x', rotation=45)
+            ax.set_ylim([df_filtered[column_options].min().min(), df_filtered[column_options].max().max()])  # Adjust Y-axis dynamically
             st.pyplot(fig)
     except Exception as e:
         st.error(f"❌ Error loading data: {e}")
-
-
 
 
 
