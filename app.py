@@ -91,59 +91,58 @@ if page == "Vessel Profile":
 
 
 
-
-
-
 if page == "LNG Market":
     st.title("📈 LNG Market Trends")
     
     # Google Sheets URLs for different frequency data
-    google_sheets_url_weekly = "https://docs.google.com/spreadsheets/d/1VyhJEdRh9OeLWP1YVHpw6XaWEHxQ6kQl/edit?usp=sharing&ouid=117771478264564763817&rtpof=true&sd=true&sheet=Weekly data_160K CBM"
-    google_sheets_url_monthly = "https://docs.google.com/spreadsheets/d/1VyhJEdRh9OeLWP1YVHpw6XaWEHxQ6kQl/edit?usp=sharing&ouid=117771478264564763817&rtpof=true&sd=true&sheet=Monthly data_160K CBM"
-    google_sheets_url_yearly = "https://docs.google.com/spreadsheets/d/1VyhJEdRh9OeLWP1YVHpw6XaWEHxQ6kQl/edit?usp=sharing&ouid=117771478264564763817&rtpof=true&sd=true&sheet=Yearly data_160 CBM"
-    # Read data from Google Sheets
-    df_weekly = pd.read_csv(google_sheets_url_weekly)
-    df_monthly = pd.read_csv(google_sheets_url_monthly)
-    df_yearly = pd.read_csv(google_sheets_url_yearly)
+    base_url = "https://docs.google.com/spreadsheets/d/1VyhJEdRh9OeLWP1YVHpw6XaWEHxQ6kQl/gviz/tq?tqx=out:csv&sheet="
+    sheet_names = {
+        "Weekly": "Weekly%20data_160K%20CBM",
+        "Monthly": "Monthly%20data_160K%20CBM",
+        "Yearly": "Yearly%20data_160%20CBM"
+    }
     
     # Select frequency
     freq_option = st.radio("Select Data Frequency", ["Weekly", "Monthly", "Yearly"])
+    google_sheets_url = f"{base_url}{sheet_names[freq_option]}"
     
-    if freq_option == "Weekly":
-        df_selected = df_weekly
-    elif freq_option == "Monthly":
-        df_selected = df_monthly
-    else:
-        df_selected = df_yearly
-    
-    # Ensure the correct column name for dates
-    if "Date" in df_selected.columns:
-        df_selected["Date"] = pd.to_datetime(df_selected["Date"], errors='coerce')
-        df_selected = df_selected.dropna(subset=["Date"]).sort_values(by="Date")
-    else:
-        st.error("⚠️ 'Date' column not found in the dataset.")
-    
-    # Select multiple columns dynamically from the selected dataset
-    available_columns = [col for col in df_selected.columns if col != "Date"]
-    column_options = st.multiselect("Select Data Columns", available_columns, default=available_columns[:1] if available_columns else [])
-    
-    # Select time range
-    if "Date" in df_selected.columns:
-        start_date = st.date_input("Select Start Date", df_selected["Date"].min())
-        end_date = st.date_input("Select End Date", df_selected["Date"].max())
-        df_filtered = df_selected[(df_selected["Date"] >= pd.to_datetime(start_date)) & (df_selected["Date"] <= pd.to_datetime(end_date))]
+    try:
+        # Read data from Google Sheets
+        df_selected = pd.read_csv(google_sheets_url)
         
-        # Plot time series
-        fig, ax = plt.subplots(figsize=(8, 3))
-        for column in column_options:
-            ax.plot(df_filtered["Date"], df_filtered[column], label=column)
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Rate")
-        ax.set_title("LNG Market Rates Over Time")
-        ax.legend()
-        ax.grid()
-        ax.tick_params(axis='x', rotation=45)
-        st.pyplot(fig)
+        # Ensure the correct column name for dates
+        if "Date" in df_selected.columns:
+            df_selected["Date"] = pd.to_datetime(df_selected["Date"], errors='coerce')
+            df_selected = df_selected.dropna(subset=["Date"]).sort_values(by="Date")
+        else:
+            st.error("⚠️ 'Date' column not found in the dataset.")
+        
+        # Select multiple columns dynamically
+        available_columns = [col for col in df_selected.columns if col != "Date"]
+        column_options = st.multiselect("Select Data Columns", available_columns, default=available_columns[:1] if available_columns else [])
+        
+        # Select time range
+        if "Date" in df_selected.columns:
+            start_date = st.date_input("Select Start Date", df_selected["Date"].min())
+            end_date = st.date_input("Select End Date", df_selected["Date"].max())
+            df_filtered = df_selected[(df_selected["Date"] >= pd.to_datetime(start_date)) & (df_selected["Date"] <= pd.to_datetime(end_date))]
+            
+            # Plot time series
+            fig, ax = plt.subplots(figsize=(8, 3))
+            for column in column_options:
+                ax.plot(df_filtered["Date"], df_filtered[column], label=column)
+            ax.set_xlabel("Date")
+            ax.set_ylabel("Rate")
+            ax.set_title("LNG Market Rates Over Time")
+            ax.legend()
+            ax.grid()
+            ax.tick_params(axis='x', rotation=45)
+            st.pyplot(fig)
+    except Exception as e:
+        st.error(f"❌ Error loading data: {e}")
+
+
+
 
 
 
