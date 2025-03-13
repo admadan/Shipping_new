@@ -52,6 +52,8 @@ if page == "Home":
     ax.set_title("Supply vs Demand")
     st.pyplot(fig)
 
+
+
 if page == "Vessel Profile":
     st.title("🚢 Vessel Profile")
     
@@ -70,18 +72,27 @@ if page == "Vessel Profile":
         "Fuel_Consumption_MT_per_day": [70, 72, 74, 85, 88, 90, 100, 102, 105, 107]
     })
     
-    # Input for Fuel Price
+    # Input for Fuel Price and Voyage Days
     fuel_price = st.number_input("Enter Fuel Price (per MT in USD)", min_value=0.0, value=500.0, step=10.0)
+    voyage_days = st.number_input("Enter Voyage Days", min_value=1, value=10, step=1)
     
-    # Calculate Fuel Cost Per Day
+    # Calculate Fuel Cost Per Day and Total Cost
     vessel_data["Fuel_Cost_per_Day"] = vessel_data["Fuel_Consumption_MT_per_day"] * fuel_price
+    vessel_data["Total_Voyage_Cost"] = vessel_data["Fuel_Cost_per_Day"] * voyage_days
     
     # Display the table
     st.dataframe(vessel_data)
     
     # Show a summary of total fleet fuel cost
     total_fuel_cost = vessel_data["Fuel_Cost_per_Day"].sum()
+    total_voyage_cost = vessel_data["Total_Voyage_Cost"].sum()
     st.metric(label="Total Fleet Fuel Cost per Day (USD)", value=f"${total_fuel_cost:,.2f}")
+    st.metric(label="Total Voyage Cost (USD)", value=f"${total_voyage_cost:,.2f}")
+
+
+
+
+
 
 if page == "LNG Market":
     st.title("📈 LNG Market Trends")
@@ -113,7 +124,7 @@ if page == "LNG Market":
     else:
         st.error("⚠️ 'Date' column not found in the dataset.")
     
-    # Select multiple columns dynamically
+    # Select multiple columns dynamically from the selected dataset
     available_columns = [col for col in df_selected.columns if col != "Date"]
     column_options = st.multiselect("Select Data Columns", available_columns, default=available_columns[:1] if available_columns else [])
     
@@ -134,6 +145,8 @@ if page == "LNG Market":
         ax.grid()
         ax.tick_params(axis='x', rotation=45)
         st.pyplot(fig)
+
+
 
 if page == "Yearly Simulation":
     st.title("📊 Yearly Simulation Dashboard")
