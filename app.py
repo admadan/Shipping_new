@@ -90,6 +90,7 @@ if page == "Vessel Profile":
     st.metric(label="Total Voyage Cost (USD)", value=f"${total_voyage_cost:,.2f}")
 
 
+
 if page == "LNG Market":
     st.title("📈 LNG Market Trends")
     
@@ -190,6 +191,8 @@ if page == "Yearly Simulation":
             ax1.set_ylabel(variable_option[0])
             ax1.plot(df_filtered["Year"], df_filtered[variable_option[0]], label=variable_option[0], color='blue')
             ax1.set_ylim(df_filtered[variable_option[0]].min(), df_filtered[variable_option[0]].max())
+            if '%' in variable_option[0]:
+                ax1.yaxis.set_major_formatter(PercentFormatter())
         
         ax1.legend()
         ax1.grid()
