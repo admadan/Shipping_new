@@ -174,6 +174,14 @@ if page == "Yearly Simulation":
         end_year = st.number_input("Select End Year", int(df_yearly_sim["Year"].min()), int(df_yearly_sim["Year"].max()), int(df_yearly_sim["Year"].max()))
         df_filtered = df_yearly_sim[(df_yearly_sim["Year"] >= start_year) & (df_yearly_sim["Year"] <= end_year)]
         
+        # User selects a specific year
+        selected_year = st.number_input("Select a Year to Display Data", int(df_yearly_sim["Year"].min()), int(df_yearly_sim["Year"].max()), int(df_yearly_sim["Year"].max()))
+        
+        if variable_option:
+            selected_data = df_yearly_sim[df_yearly_sim["Year"] == selected_year][variable_option]
+            st.subheader(f"Data for {selected_year}")
+            st.write(selected_data)
+        
         fig, ax1 = plt.subplots(figsize=(8, 4))
         ax1.set_xlabel("Year")
         ax1.set_title("Yearly Simulation Trends")
