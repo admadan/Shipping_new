@@ -53,7 +53,6 @@ if page == "Home":
     st.pyplot(fig)
 
 
-
 if page == "Vessel Profile":
     st.title("🚢 Vessel Profile")
     
@@ -78,32 +77,36 @@ if page == "Vessel Profile":
     freight_rate_per_day = st.number_input("Enter Freight Rate per Day (USD)", min_value=0.0, value=100000.0, step=1000.0)
     
     # Calculate Fuel Cost Per Day and Total Cost
-    vessel_data["Fuel_Cost_per_Day"] = vessel_data["Fuel_Consumption_MT_per_day"] * fuel_price
-    vessel_data["Total_Voyage_Cost"] = vessel_data["Fuel_Cost_per_Day"] * voyage_days
+    vessel_data["Fuel_Cost_per_Day"] = (vessel_data["Fuel_Consumption_MT_per_day"] * fuel_price).astype(int)
+    vessel_data["Total_Voyage_Cost"] = (vessel_data["Fuel_Cost_per_Day"] * voyage_days).astype(int)
     
     # Calculate Freight Earnings and Profit
-    vessel_data["Total_Freight_Earnings"] = freight_rate_per_day * voyage_days
-    vessel_data["Total_Profit"] = vessel_data["Total_Freight_Earnings"] - vessel_data["Total_Voyage_Cost"]
+    vessel_data["Total_Freight_Earnings"] = (freight_rate_per_day * voyage_days).astype(int)
+    vessel_data["Total_Profit"] = (vessel_data["Total_Freight_Earnings"] - vessel_data["Total_Voyage_Cost"]).astype(int)
     
-    # Display the table with center-aligned values
+    # Format table to display values in a single line and center-align
     st.markdown(
-        vessel_data.style.set_properties(**{'text-align': 'center'}).set_table_styles([
+        vessel_data.style.set_properties(
+            **{'text-align': 'center', 'white-space': 'nowrap'}
+        ).set_table_styles([
             {'selector': 'th', 'props': [('text-align', 'center')]}
-        ]).to_html(),
+        ]).format("{:,.0f}").to_html(),
         unsafe_allow_html=True
     )
     
     # Show a summary of total fleet fuel cost
-    total_fuel_cost = vessel_data["Fuel_Cost_per_Day"].sum()
-    total_voyage_cost = vessel_data["Total_Voyage_Cost"].sum()
-    total_freight_earnings = vessel_data["Total_Freight_Earnings"].sum()
-    total_profit = vessel_data["Total_Profit"].sum()
+    total_fuel_cost = int(vessel_data["Fuel_Cost_per_Day"].sum())
+    total_voyage_cost = int(vessel_data["Total_Voyage_Cost"].sum())
+    total_freight_earnings = int(vessel_data["Total_Freight_Earnings"].sum())
+    total_profit = int(vessel_data["Total_Profit"].sum())
     
-    st.metric(label="Total Fleet Fuel Cost per Day (USD)", value=f"${total_fuel_cost:,.2f}")
-    st.metric(label="Total Voyage Cost (USD)", value=f"${total_voyage_cost:,.2f}")
-    st.metric(label="Total Freight Earnings (USD)", value=f"${total_freight_earnings:,.2f}")
-    st.metric(label="Total Profit (USD)", value=f"${total_profit:,.2f}")
-    
+    st.metric(label="Total Fleet Fuel Cost per Day (USD)", value=f"${total_fuel_cost:,}")
+    st.metric(label="Total Voyage Cost (USD)", value=f"${total_voyage_cost:,}")
+    st.metric(label="Total Freight Earnings (USD)", value=f"${total_freight_earnings:,}")
+    st.metric(label="Total Profit (USD)", value=f"${total_profit:,}")
+
+
+
 
 if page == "LNG Market":
     st.title("📈 LNG Market Trends")
