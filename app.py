@@ -98,10 +98,9 @@ if page == "LNG Market":
     st.title("📈 LNG Market Trends")
     
     # Google Sheets URLs for different frequency data
-    google_sheets_url_weekly = "https://docs.google.com/spreadsheets/d/1VyhJEdRh9OeLWP1YVHpw6XaWEHxQ6kQl/edit?usp=sharing&ouid=117771478264564763817&rtpof=true&sd=true&sheet=Weekly data_160K CBM"
-    google_sheets_url_monthly = "https://docs.google.com/spreadsheets/d/1VyhJEdRh9OeLWP1YVHpw6XaWEHxQ6kQl/edit?usp=sharing&ouid=117771478264564763817&rtpof=true&sd=true&sheet=Monthly data_160K CBM"
-    google_sheets_url_yearly = "https://docs.google.com/spreadsheets/d/1VyhJEdRh9OeLWP1YVHpw6XaWEHxQ6kQl/edit?usp=sharing&ouid=117771478264564763817&rtpof=true&sd=true&sheet=Yearly data_160 CBM"
-    
+    google_sheets_url_weekly = "https://docs.google.com/spreadsheets/d/1VyhJEdRh9OeLWP1YVHpw6XaWEHxQ6kQl/edit?usp=sharing&ouid=117771478264564763817&rtpof=true&sd=true"
+    google_sheets_url_monthly = "https://docs.google.com/spreadsheets/d/1VyhJEdRh9OeLWP1YVHpw6XaWEHxQ6kQl/edit?usp=sharing&ouid=117771478264564763817&rtpof=true&sd=true"
+    google_sheets_url_yearly = "https://docs.google.com/spreadsheets/d/1VyhJEdRh9OeLWP1YVHpw6XaWEHxQ6kQl/edit?usp=sharing&ouid=117771478264564763817&rtpof=true&sd=true"
     # Read data from Google Sheets
     df_weekly = pd.read_csv(google_sheets_url_weekly)
     df_monthly = pd.read_csv(google_sheets_url_monthly)
