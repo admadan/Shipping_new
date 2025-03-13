@@ -90,7 +90,6 @@ if page == "Vessel Profile":
     st.metric(label="Total Voyage Cost (USD)", value=f"${total_voyage_cost:,.2f}")
 
 
-
 if page == "LNG Market":
     st.title("📈 LNG Market Trends")
     
@@ -108,7 +107,7 @@ if page == "LNG Market":
     
     try:
         # Read data from Google Sheets
-        df_selected = pd.read_csv(google_sheets_url)
+        df_selected = pd.read_csv(google_sheets_url, dtype=str)  # Ensures all data is initially treated as strings
         
         # Ensure the correct column name for dates
         if "Date" in df_selected.columns:
@@ -117,6 +116,11 @@ if page == "LNG Market":
         else:
             st.error("⚠️ 'Date' column not found in the dataset.")
         
+        # Convert numeric columns to proper float format
+        for col in df_selected.columns:
+            if col != "Date":
+                df_selected[col] = pd.to_numeric(df_selected[col], errors='coerce').fillna(0)  # Convert to float, replace NaNs with 0
+
         # Select multiple columns dynamically
         available_columns = [col for col in df_selected.columns if col != "Date"]
         column_options = st.multiselect("Select Data Columns", available_columns, default=available_columns[:1] if available_columns else [])
@@ -140,6 +144,7 @@ if page == "LNG Market":
             st.pyplot(fig)
     except Exception as e:
         st.error(f"❌ Error loading data: {e}")
+
 
 
 
