@@ -117,28 +117,30 @@ if page == "LNG Market":
                 df_selected[col] = pd.to_numeric(df_selected[col], errors='coerce').fillna(0)
 
         available_columns = [col for col in df_selected.columns if col != "Date"]
-        column_options = st.multiselect("Select Data Columns", available_columns, default=available_columns[:1] if available_columns else [])
+        column_options = st.multiselect("Select Data Columns", available_columns, default=available_columns[:2] if available_columns else [])
         
         if "Date" in df_selected.columns:
             start_date = st.date_input("Select Start Date", df_selected["Date"].min())
             end_date = st.date_input("Select End Date", df_selected["Date"].max())
             df_filtered = df_selected[(df_selected["Date"] >= pd.to_datetime(start_date)) & (df_selected["Date"] <= pd.to_datetime(end_date))]
             
-            fig, ax = plt.subplots(figsize=(8, 4))
-            for column in column_options:
-                ax.plot(df_filtered["Date"], df_filtered[column], label=column)
+            fig, ax1 = plt.subplots(figsize=(8, 4))
+            ax1.set_xlabel("Date")
+            ax1.set_title("LNG Market Rates Over Time")
+            ax1.tick_params(axis='x', rotation=45)
             
-            ax.set_xlabel("Date")
-            ax.set_ylabel("Selected Metrics" if len(column_options) > 1 else column_options[0])
-            ax.set_title("LNG Market Rates Over Time")
-            ax.legend()
-            ax.grid()
-            ax.tick_params(axis='x', rotation=45)
+            if len(column_options) > 1:
+                ax2 = ax1.twinx()
+                ax1.set_ylabel(column_options[0])
+                ax2.set_ylabel(column_options[1])
+                ax1.plot(df_filtered["Date"], df_filtered[column_options[0]], label=column_options[0], color='blue')
+                ax2.plot(df_filtered["Date"], df_filtered[column_options[1]], label=column_options[1], color='orange')
+            else:
+                ax1.set_ylabel(column_options[0])
+                ax1.plot(df_filtered["Date"], df_filtered[column_options[0]], label=column_options[0], color='blue')
             
-            # Dynamically adjust Y-axis
-            if column_options:
-                ax.set_ylim(df_filtered[column_options].min().min(), df_filtered[column_options].max().max())
-            
+            ax1.legend()
+            ax1.grid()
             st.pyplot(fig)
     except Exception as e:
         st.error(f"❌ Error loading data: {e}")
@@ -162,7 +164,7 @@ if page == "Yearly Simulation":
                 df_yearly_sim[col] = pd.to_numeric(df_yearly_sim[col], errors='coerce').fillna(0)
 
         available_columns = [col for col in df_yearly_sim.columns if col != "Year"]
-        variable_option = st.multiselect("Select Data Columns", available_columns, default=available_columns[:1] if available_columns else [])
+        variable_option = st.multiselect("Select Data Columns", available_columns, default=available_columns[:2] if available_columns else [])
         
         start_year = st.number_input("Select Start Year", int(df_yearly_sim["Year"].min()), int(df_yearly_sim["Year"].max()), int(df_yearly_sim["Year"].min()))
         end_year = st.number_input("Select End Year", int(df_yearly_sim["Year"].min()), int(df_yearly_sim["Year"].max()), int(df_yearly_sim["Year"].max()))
@@ -170,18 +172,18 @@ if page == "Yearly Simulation":
         
         fig, ax1 = plt.subplots(figsize=(8, 4))
         ax1.set_xlabel("Year")
-        ax1.set_ylabel("Selected Metrics" if len(variable_option) > 1 else variable_option[0])
         ax1.set_title("Yearly Simulation Trends")
         ax1.tick_params(axis='x', rotation=45)
         
-        ax2 = ax1.twinx() if len(variable_option) > 1 else None
-        
-        for i, column in enumerate(variable_option):
-            ax = ax1 if i == 0 or ax2 is None else ax2
-            ax.plot(df_filtered["Year"], df_filtered[column], label=column)
-            
-            # Dynamically adjust Y-axis
-            ax.set_ylim(df_filtered[column].min(), df_filtered[column].max())
+        if len(variable_option) > 1:
+            ax2 = ax1.twinx()
+            ax1.set_ylabel(variable_option[0])
+            ax2.set_ylabel(variable_option[1])
+            ax1.plot(df_filtered["Year"], df_filtered[variable_option[0]], label=variable_option[0], color='blue')
+            ax2.plot(df_filtered["Year"], df_filtered[variable_option[1]], label=variable_option[1], color='orange')
+        else:
+            ax1.set_ylabel(variable_option[0])
+            ax1.plot(df_filtered["Year"], df_filtered[variable_option[0]], label=variable_option[0], color='blue')
         
         ax1.legend()
         ax1.grid()
