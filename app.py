@@ -2,22 +2,12 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 
-# ---- LSTM model and LNG Market Page ----
-
-import streamlit as st
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import MinMaxScaler
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
-
-# ---- LSTM function ----
+# ---- LSTM Forecast Function ----
 def run_lstm_model(df, target_column, sequence_length=10):
     df = df.sort_values(by='Date')
     series = df[target_column].values.reshape(-1, 1)
@@ -50,11 +40,11 @@ def run_lstm_model(df, target_column, sequence_length=10):
     predicted = scaler.inverse_transform(predicted_scaled)
     actual = scaler.inverse_transform(y_test)
 
-    return predicted, actual
+    return predicted, actual, len(df) - len(actual), df
 
-# ---- LNG Market Page ----
+# ---- LNG Market Page with Plotly ----
 def lng_market_page():
-    st.title("📈 LNG Market Trends with Forecast")
+    st.title("📈 LNG Market Trends with LSTM Forecast (Interactive Plotly)")
 
     base_url = "https://docs.google.com/spreadsheets/d/1kySjcfv1jMkDRrqAD9qS10KjIs5H1Vdu/gviz/tq?tqx=out:csv&sheet="
     sheet_names = {
@@ -87,31 +77,37 @@ def lng_market_page():
         end_date = st.date_input("Select End Date", df_selected["Date"].max())
         df_filtered = df_selected[(df_selected["Date"] >= pd.to_datetime(start_date)) & (df_selected["Date"] <= pd.to_datetime(end_date))]
 
-        st.subheader(f"Time Series Plot for: {selected_column}")
-        fig, ax = plt.subplots(figsize=(10, 4))
-        ax.plot(df_filtered["Date"], df_filtered[selected_column], label=selected_column)
-        ax.set_title(f"{selected_column} Over Time")
-        ax.set_xlabel("Date")
-        ax.set_ylabel(selected_column)
-        ax.grid(True)
-        st.pyplot(fig)
+        st.subheader("📉 Forecast with Historical Data")
 
-        if len(df_filtered) > 20:
-            st.subheader("LSTM Forecast")
-            predicted, actual = run_lstm_model(df_filtered, selected_column)
+        if len(df_filtered) > 30:
+            predicted, actual, start_index, df_full = run_lstm_model(df_filtered, selected_column)
 
-            fig_lstm, ax_lstm = plt.subplots(figsize=(10, 4))
-            ax_lstm.plot(actual, label="Actual", color="blue")
-            ax_lstm.plot(predicted, label="Predicted", color="red")
-            ax_lstm.set_title(f"LSTM Prediction for {selected_column}")
-            ax_lstm.set_ylabel(selected_column)
-            ax_lstm.set_xlabel("Index")
-            ax_lstm.legend()
-            ax_lstm.grid(True)
-            st.pyplot(fig_lstm)
+            fig = go.Figure()
+
+            fig.add_trace(go.Scatter(
+                x=df_filtered["Date"], y=df_filtered[selected_column],
+                mode='lines', name='Historical', line=dict(color='blue')
+            ))
+
+            forecast_dates = df_filtered["Date"].iloc[start_index + 10:].values
+            fig.add_trace(go.Scatter(
+                x=forecast_dates, y=predicted.flatten(),
+                mode='lines', name='LSTM Forecast', line=dict(color='red', dash='dash')
+            ))
+
+            fig.update_layout(
+                title=f"{selected_column} - Historical & Forecast",
+                xaxis_title="Date",
+                yaxis_title=selected_column,
+                hovermode="x unified"
+            )
+            st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
         st.error(f"❌ Error loading or processing data: {e}")
+
+
+
 
 
 # ---- Streamlit Page Config ----
